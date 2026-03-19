@@ -66,9 +66,13 @@ async def get_token(bot, user_id, verify_base_url):
         user = await bot.get_users(user_id)
         await db.add_user(user_id, user.first_name, user.username)
 
+    bot_info = await bot.get_me()
     token = ''.join(random.choices(string.ascii_letters + string.digits, k=7))
     await db.update_verify_token(user_id, token)
-    slug = encode_verify_slug(user_id, token)
+
+    telegram_verify_link = f"https://t.me/{bot_info.username}?start=verify-{user_id}-{token}"
+    shorted_verify_link = await get_verify_shorted_link(telegram_verify_link)
+    slug = encode_verify_slug(shorted_verify_link)
     base_url = verify_base_url.rstrip('/')
     return f"{base_url}/verify/{slug}"
 

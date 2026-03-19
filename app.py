@@ -398,11 +398,10 @@ def hello_world():
 
 @app.route('/verify/<slug>')
 def verify_redirect(slug):
-    user_id, token = decode_verify_slug(slug)
-    if not user_id or not token:
+    redirect_url = decode_verify_slug(slug)
+    if not redirect_url or not redirect_url.startswith(("http://", "https://")):
         return render_template_string(VERIFY_PAGE, valid=False)
 
-    redirect_url = f"https://t.me/SaveRestriction_oBot?start=verify-{user_id}-{token}"
     return render_template_string(VERIFY_PAGE, valid=True, redirect_url=redirect_url)
 
 
