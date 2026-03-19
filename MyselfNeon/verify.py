@@ -13,6 +13,7 @@ from config import (
     VERIFY_MIN_SECONDS, VERIFY_BYPASS_BAN_ATTEMPTS
 )
 from database.db import db
+from MyselfNeon.web_verify import encode_verify_slug
 
 IST = timezone(timedelta(hours=5, minutes=30))
 
@@ -60,15 +61,16 @@ async def get_verify_shorted_link(link):
     return await _fallback_short_link(link)
 
 
-async def get_token(bot, user_id, start_link):
+async def get_token(bot, user_id, verify_base_url):
     if not await db.is_user_exist(user_id):
         user = await bot.get_users(user_id)
         await db.add_user(user_id, user.first_name, user.username)
 
     token = ''.join(random.choices(string.ascii_letters + string.digits, k=7))
     await db.update_verify_token(user_id, token)
-    link = f"{start_link}verify-{user_id}-{token}"
-    return await get_verify_shorted_link(link)
+    slug = encode_verify_slug(user_id, token)
+    base_url = verify_base_url.rstrip('/')
+    return f"{base_url}/verify/{slug}"
 
 
 async def check_token(user_id, token):
